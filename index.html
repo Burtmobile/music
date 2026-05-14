@@ -261,7 +261,8 @@ const SRV = {
   ext:   'https://satternas.de9.quickconnect.to'
 };
 
-// Thuis = lokaal IP, anders QuickConnect
+// Thuis (localhost) = lokaal IP via Python proxy
+// Extern (music.satter.tv) = via Cloudflare Worker op /api/
 const isHome = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 let mode = isHome ? 'local' : 'ext';
 let sid  = null;
@@ -307,11 +308,16 @@ async function doLogin() {
 }
 
 // ── API HELPER ──────────────────────────────────────────
+function apiBase() {
+  // Thuis: Python proxy; Extern: Cloudflare Worker via /api/
+  return isHome ? '/api-local' : '/api';
+}
+
 async function synoAPI(path, params={}) {
-  const url = new URL(SRV[mode] + path);
+  const url = new URL(apiBase() + path, location.origin);
   if (sid) params._sid = sid;
   Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
-  const r = await fetch(url, {credentials:'omit'});
+  const r = await fetch(url);
   return r.json();
 }
 
@@ -319,10 +325,10 @@ function streamURL(id) {
   return `${SRV[mode]}/webapi/AudioStation/stream.cgi?api=SYNO.AudioStation.Stream&version=2&method=stream&id=${id}&_sid=${sid}`;
 }
 function coverURL(id) {
-  return `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${id}&type=song&_sid=${sid}`;
+  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${id}&type=song&_sid=${sid}`;
 }
 function albumCoverURL(album, artist) {
-  return `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&album_name=${enc(album)}&album_artist_name=${enc(artist||'')}&type=album&_sid=${sid}`;
+  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&album_name=${enc(album)}&album_artist_name=${enc(artist||'')}&type=album&_sid=${sid}`;
 }
 const enc = s => encodeURIComponent(s||'');
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
