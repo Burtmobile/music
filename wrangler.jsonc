@@ -1,14 +1,31 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "syno-proxy",
-  "compatibility_date": "2026-05-14",
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "."
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+const SYNOLOGY = 'https://satternas.de9.quickconnect.to';
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  // CORS preflight
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': 'https://music.satter.tv',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+      }
+    });
+  }
+
+  // Strip het /api prefix en stuur door naar Synology
+  const url = new URL(request.url);
+  const synoPath = url.pathname.replace('/api', '') + url.search;
+  const synoUrl  = SYNOLOGY + synoPath;
+
+  const response = await fetch(synoUrl);
+  const newResp  = new Response(response.body, response);
+
+  newResp.headers.set('Access-Control-Allow-Origin', 'https://music.satter.tv');
+  newResp.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  return newResp;
 }
