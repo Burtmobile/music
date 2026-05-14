@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satter Music</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#0a0a0a;--bg1:#121212;--bg2:#181818;--bg3:#282828;--bg4:#3e3e3e;
+  --accent:#1db954;--accent2:#1ed760;
+  --t1:#ffffff;--t2:#b3b3b3;--t3:#6b6b6b;
+  --player:90px;--side:220px;
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:var(--t1)}
+
+/* ── LOGIN ── */
+#login{display:flex;align-items:center;justify-content:center;height:100vh;
+  background:linear-gradient(135deg,#0d1b2a 0%,#1a2a1a 60%,#0a1a0a 100%)}
+.card{background:var(--bg2);padding:44px;border-radius:16px;width:370px;
+  box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.card h1{font-size:26px;text-align:center;margin-bottom:6px}
+.card .sub{color:var(--t2);text-align:center;font-size:13px;margin-bottom:28px}
+.toggle{display:flex;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:18px;gap:4px}
+.toggle button{flex:1;padding:8px;border:none;background:none;color:var(--t2);border-radius:6px;
+  cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.toggle button.on{background:var(--bg4);color:var(--t1)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;color:var(--t2);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:5px}
+.fg input{width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid transparent;
+  border-radius:8px;color:var(--t1);font-size:14px;transition:.2s}
+.fg input:focus{outline:none;border-color:var(--accent)}
+.btn-login{width:100%;padding:13px;background:var(--accent);border:none;border-radius:50px;
+  color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;transition:.15s}
+.btn-login:hover{background:var(--accent2);transform:scale(1.02)}
+.btn-login:active{transform:scale(.98)}
+.login-err{color:#e05555;text-align:center;font-size:12px;margin-top:10px;display:none}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;height:100vh}
+.mid{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--side);background:var(--bg0);display:flex;flex-direction:column;
+  flex-shrink:0;padding:6px;gap:6px}
+.logo{padding:14px 12px 6px;font-size:16px;font-weight:900;color:var(--t1)}
+.logo span{color:var(--accent)}
+.nav-box{background:var(--bg2);border-radius:8px;padding:6px 0}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 14px;color:var(--t2);
+  cursor:pointer;border-radius:4px;font-size:13px;font-weight:600;border:none;
+  background:none;width:100%;text-align:left;transition:.1s}
+.ni:hover{color:var(--t1)}
+.ni.on{color:var(--t1)}
+.ni svg{flex-shrink:0;width:18px;height:18px;fill:currentColor}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;background:linear-gradient(180deg,#162416 0%,var(--bg1) 280px)}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+.top-bar{padding:18px 22px 14px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;background:rgba(10,10,10,.75);backdrop-filter:blur(12px);z-index:20}
+.searchbox{position:relative;flex:1;max-width:360px}
+.searchbox svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  fill:var(--t2);width:14px;height:14px}
+.searchbox input{width:100%;padding:9px 14px 9px 34px;background:var(--bg3);border:none;
+  border-radius:50px;color:var(--t1);font-size:13px}
+.searchbox input:focus{outline:2px solid rgba(255,255,255,.3)}
+.page-title{padding:4px 22px 20px}
+.page-title h2{font-size:28px;font-weight:900}
+.page-title p{color:var(--t2);font-size:13px;margin-top:2px}
+
+/* ── SONG LIST ── */
+.slist{padding:0 22px 40px}
+.slist-head{display:grid;grid-template-columns:36px 1fr 1fr 64px;
+  padding:4px 14px;border-bottom:1px solid rgba(255,255,255,.08);
+  margin-bottom:6px;color:var(--t3);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.si{display:grid;grid-template-columns:36px 1fr 1fr 64px;
+  padding:7px 14px;border-radius:4px;cursor:pointer;align-items:center;transition:.1s}
+.si:hover{background:var(--bg4)}
+.si.now{color:var(--accent)}
+.si.now .snum{color:var(--accent)}
+.snum{color:var(--t2);font-size:13px}
+.sinfo{display:flex;align-items:center;gap:10px;min-width:0}
+.sthumb{width:38px;height:38px;border-radius:3px;background:var(--bg3);flex-shrink:0;object-fit:cover}
+.sdet{min-width:0}
+.sname{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sart{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.salb{font-size:13px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdur{font-size:13px;color:var(--t2);text-align:right}
+
+/* ── CARD GRID ── */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:0 22px 40px}
+.ccard{background:var(--bg2);border-radius:8px;padding:14px;cursor:pointer;transition:.15s}
+.ccard:hover{background:var(--bg4)}
+.cover{width:100%;aspect-ratio:1/1;border-radius:6px;background:var(--bg3);
+  margin-bottom:10px;object-fit:cover;display:block}
+.cover.round{border-radius:50%}
+.cname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csub{font-size:11px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── STATES ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;
+  color:var(--t2);gap:10px;font-size:14px}
+.spin{width:22px;height:22px;border:3px solid var(--bg4);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.back{background:rgba(0,0,0,.5);border:none;color:var(--t1);width:30px;height:30px;
+  border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:.15s;flex-shrink:0}
+.back:hover{background:rgba(0,0,0,.85)}
+
+/* ── PLAYER BAR ── */
+.pbar{height:var(--player);background:var(--bg3);border-top:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
+.pinfo{display:flex;align-items:center;gap:10px;width:200px;flex-shrink:0}
+#pcov{width:52px;height:52px;border-radius:4px;background:var(--bg0);object-fit:cover;flex-shrink:0}
+.pmeta{min-width:0}
+#ptitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#partist{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pctrl{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+.pbts{display:flex;align-items:center;gap:18px}
+.cb{background:none;border:none;color:var(--t2);cursor:pointer;padding:3px;
+  display:flex;align-items:center;transition:.1s}
+.cb:hover{color:var(--t1)}
+.cb svg{width:18px;height:18px;fill:currentColor}
+.cb.play{width:36px;height:36px;background:var(--t1);border-radius:50%;color:#000}
+.cb.play svg{width:16px;height:16px}
+.cb.play:hover{transform:scale(1.08);background:var(--t1)}
+.prog{display:flex;align-items:center;gap:7px;width:100%;max-width:460px}
+.tl{font-size:10px;color:var(--t2);width:34px;text-align:center}
+.ptrack{flex:1;height:4px;background:var(--bg4);border-radius:2px;cursor:pointer;position:relative}
+.pfill{height:100%;background:var(--t2);border-radius:2px;pointer-events:none;transition:background .1s}
+.ptrack:hover .pfill{background:var(--accent)}
+.pright{display:flex;align-items:center;gap:7px;width:180px;justify-content:flex-end}
+.vtrack{width:72px;height:4px;background:var(--bg4);border-radius:2px;cursor:pointer;position:relative}
+.vfill{height:100%;background:var(--t2);border-radius:2px;pointer-events:none}
+#castbtn{background:none;border:none;color:var(--t2);cursor:pointer;padding:3px;
+  display:flex;transition:.1s}
+#castbtn:hover{color:var(--t1)}
+#castbtn.on{color:var(--accent)}
+#castbtn svg{width:20px;height:20px;fill:currentColor}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login">
+  <div class="card">
+    <h1>🎵 Satter Music</h1>
+    <p class="sub">Verbinding met je Synology</p>
+
+    <div class="toggle">
+      <button id="btn-local" onclick="setSrv('local')">🏠 Thuis</button>
+      <button id="btn-ext" onclick="setSrv('ext')">🌐 Extern</button>
+    </div>
+
+    <div class="fg">
+      <label>Server</label>
+      <input id="srv-url" readonly style="color:var(--t2)">
+    </div>
+    <div class="fg">
+      <label>Gebruikersnaam</label>
+      <input id="uname" value="Bert Satter">
+    </div>
+    <div class="fg">
+      <label>Wachtwoord</label>
+      <input id="upass" type="password" placeholder="Jouw wachtwoord"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Inloggen</button>
+    <div class="login-err" id="lerr"></div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+  <div class="mid">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="logo">🎵 <span>Satter</span></div>
+      <div class="nav-box">
+        <button class="ni on" id="n-songs" onclick="go('songs')">
+          <svg viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>
+          Nummers
+        </button>
+        <button class="ni" id="n-albums" onclick="go('albums')">
+          <svg viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
+          Albums
+        </button>
+        <button class="ni" id="n-artists" onclick="go('artists')">
+          <svg viewBox="0 0 16 16"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/></svg>
+          Artiesten
+        </button>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="content" id="content"></main>
+  </div>
+
+  <!-- Player bar -->
+  <div class="pbar">
+    <div class="pinfo">
+      <img id="pcov" src="" alt="">
+      <div class="pmeta">
+        <div id="ptitle">—</div>
+        <div id="partist">Geen nummer</div>
+      </div>
+    </div>
+
+    <div class="pctrl">
+      <div class="pbts">
+        <button class="cb" onclick="prevSong()" title="Vorige">
+          <svg viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z"/></svg>
+        </button>
+        <button class="cb play" id="playbtn" onclick="togglePlay()">
+          <svg id="playico" viewBox="0 0 16 16">
+            <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+          </svg>
+        </button>
+        <button class="cb" onclick="nextSong()" title="Volgende">
+          <svg viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5z"/></svg>
+        </button>
+      </div>
+      <div class="prog">
+        <span class="tl" id="ct">0:00</span>
+        <div class="ptrack" id="ptrack" onclick="seekTo(event)">
+          <div class="pfill" id="pfill" style="width:0%"></div>
+        </div>
+        <span class="tl" id="tt">0:00</span>
+      </div>
+    </div>
+
+    <div class="pright">
+      <button id="castbtn" onclick="doCast()" title="Casten naar Google Home">
+        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      </button>
+      <button id="airplaybtn" onclick="doAirPlay()" title="AirPlay (Safari)" style="display:none;background:none;border:none;color:var(--t2);cursor:pointer;padding:3px;transition:.1s">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor"><path d="M12 17l-5 5h10l-5-5zm0-15C6.477 2 2 6.477 2 12c0 2.5.926 4.776 2.444 6.515l1.446-1.446A7.956 7.956 0 0 1 4 12c0-4.418 3.582-8 8-8s8 3.582 8 8a7.956 7.956 0 0 1-1.89 5.069l1.446 1.446A9.955 9.955 0 0 0 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      </button>
+      <button class="cb" onclick="toggleMute()">
+        <svg id="volico" viewBox="0 0 16 16" style="width:16px;height:16px;fill:currentColor">
+          <path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z"/><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/>
+        </svg>
+      </button>
+      <div class="vtrack" id="vtrack" onclick="setVol(event)">
+        <div class="vfill" id="vfill" style="width:80%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<audio id="aud" preload="none" x-webkit-airplay="allow"></audio>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const SRV = {
+  local: 'http://192.168.1.169:5000',
+  ext:   'https://satternas.de9.quickconnect.to'
+};
+
+// Thuis = lokaal IP, anders QuickConnect
+const isHome = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+let mode = isHome ? 'local' : 'ext';
+let sid  = null;
+let queue = [], qi = -1;
+let castSession = null, casting = false;
+const aud = document.getElementById('aud');
+
+// ── LOGIN ───────────────────────────────────────────────
+function setSrv(m) {
+  mode = m;
+  document.getElementById('srv-url').value = SRV[m];
+  document.getElementById('btn-local').classList.toggle('on', m==='local');
+  document.getElementById('btn-ext').classList.toggle('on', m==='ext');
+}
+// Automatisch juiste server kiezen
+setSrv(mode);
+
+async function doLogin() {
+  const user = document.getElementById('uname').value.trim();
+  const pass = document.getElementById('upass').value;
+  const btn  = document.querySelector('.btn-login');
+  const err  = document.getElementById('lerr');
+  btn.textContent='Verbinden…'; btn.disabled=true; err.style.display='none';
+  try {
+    const r = await synoAPI('/webapi/auth.cgi',{
+      api:'SYNO.API.Auth', version:6, method:'login',
+      account:user, passwd:pass, session:'AudioStation', format:'sid'
+    });
+    if (r.success) {
+      sid = r.data.sid;
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='flex';
+      go('songs');
+    } else {
+      err.textContent='Verkeerd wachtwoord of gebruikersnaam.';
+      err.style.display='block';
+    }
+  } catch(e) {
+    err.textContent='Server niet bereikbaar. Controleer de verbinding.';
+    err.style.display='block';
+  }
+  btn.textContent='Inloggen'; btn.disabled=false;
+}
+
+// ── API HELPER ──────────────────────────────────────────
+async function synoAPI(path, params={}) {
+  const url = new URL(SRV[mode] + path);
+  if (sid) params._sid = sid;
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const r = await fetch(url, {credentials:'omit'});
+  return r.json();
+}
+
+function streamURL(id) {
+  return `${SRV[mode]}/webapi/AudioStation/stream.cgi?api=SYNO.AudioStation.Stream&version=2&method=stream&id=${id}&_sid=${sid}`;
+}
+function coverURL(id) {
+  return `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${id}&type=song&_sid=${sid}`;
+}
+function albumCoverURL(album, artist) {
+  return `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&album_name=${enc(album)}&album_artist_name=${enc(artist||'')}&type=album&_sid=${sid}`;
+}
+const enc = s => encodeURIComponent(s||'');
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function fmt(s) {
+  if (!s||isNaN(s)) return '0:00';
+  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+}
+
+// ── NAVIGATION ──────────────────────────────────────────
+function go(view, data=null) {
+  ['songs','albums','artists'].forEach(v=>{
+    const el=document.getElementById('n-'+v);
+    if(el) el.classList.toggle('on', v===view);
+  });
+  if (view==='songs')        loadSongs();
+  else if (view==='albums')  loadAlbums();
+  else if (view==='artists') loadArtists();
+  else if (view==='album')   loadAlbum(data);
+  else if (view==='artist')  loadArtist(data);
+}
+
+// ── SONGS ───────────────────────────────────────────────
+let searchT;
+function loadSongs(q='') {
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="top-bar">
+      <div class="searchbox">
+        <svg viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+        <input placeholder="Zoeken…" value="${esc(q)}" oninput="clearTimeout(searchT);searchT=setTimeout(()=>loadSongs(this.value),400)">
+      </div>
+    </div>
+    <div class="page-title"><h2>Nummers</h2></div>
+    <div class="slist">
+      <div class="slist-head"><span>#</span><span>Nummer</span><span>Album</span><span>Duur</span></div>
+      <div class="loading"><div class="spin"></div> Laden…</div>
+    </div>`;
+
+  const params = {
+    api:'SYNO.AudioStation.Song', version:3, method:'list',
+    library:'all', limit:1500, offset:0,
+    sort_by:'title', sort_direction:'ASC',
+    additional:'song_tag,song_audio'
+  };
+  if (q) params.title = q;
+
+  synoAPI('/webapi/AudioStation/song.cgi', params).then(d=>{
+    if (!d.success) { c.querySelector('.loading').textContent='Fout bij laden.'; return; }
+    const songs = d.data.songs;
+    queue = songs;
+    const list = c.querySelector('.slist');
+    const head = list.querySelector('.slist-head');
+    list.innerHTML=''; list.appendChild(head);
+    const frag = document.createDocumentFragment();
+    songs.forEach((s,i)=>{
+      const dur = fmt(s.additional?.song_audio?.duration||0);
+      const art = s.additional?.song_tag?.artist||'';
+      const alb = s.additional?.song_tag?.album||'';
+      const el  = document.createElement('div');
+      el.className = 'si'+(qi===i?' now':'');
+      el.innerHTML = `
+        <span class="snum">${i+1}</span>
+        <div class="sinfo">
+          <img class="sthumb" src="${coverURL(s.id)}" loading="lazy" onerror="this.src=''" alt="">
+          <div class="sdet"><div class="sname">${esc(s.title)}</div><div class="sart">${esc(art)}</div></div>
+        </div>
+        <span class="salb">${esc(alb)}</span>
+        <span class="sdur">${dur}</span>`;
+      el.onclick=()=>playSong(i,songs);
+      frag.appendChild(el);
+    });
+    list.appendChild(frag);
+  }).catch(()=>{ c.querySelector('.loading').textContent='Fout bij laden.'; });
+}
+
+// ── ALBUMS ──────────────────────────────────────────────
+function loadAlbums() {
+  const c = document.getElementById('content');
+  c.innerHTML=`<div class="top-bar"></div><div class="page-title"><h2>Albums</h2></div>
+    <div class="loading"><div class="spin"></div> Laden…</div>`;
+  synoAPI('/webapi/AudioStation/album.cgi',{
+    api:'SYNO.AudioStation.Album',version:3,method:'list',
+    limit:1000,sort_by:'name',sort_direction:'ASC'
+  }).then(d=>{
+    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
+    c.querySelector('.loading').remove();
+    const grid=document.createElement('div'); grid.className='cgrid';
+    d.data.albums.forEach(a=>{
+      const el=document.createElement('div'); el.className='ccard';
+      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy" onerror="this.style.background='var(--bg4)'" alt="">
+        <div class="cname">${esc(a.name)}</div>
+        <div class="csub">${esc(a.album_artist||'Onbekend')}</div>`;
+      el.onclick=()=>go('album',a);
+      grid.appendChild(el);
+    });
+    c.appendChild(grid);
+  });
+}
+
+function loadAlbum(alb) {
+  const c = document.getElementById('content');
+  c.innerHTML=`<div class="top-bar"><button class="back" onclick="go('albums')">←</button>
+      <strong style="font-size:14px">${esc(alb.name)}</strong></div>
+    <div class="page-title"><h2>${esc(alb.name)}</h2><p>${esc(alb.album_artist||'')}</p></div>
+    <div class="slist">
+      <div class="slist-head"><span>#</span><span>Nummer</span><span></span><span>Duur</span></div>
+      <div class="loading"><div class="spin"></div> Laden…</div>
+    </div>`;
+  synoAPI('/webapi/AudioStation/song.cgi',{
+    api:'SYNO.AudioStation.Song',version:3,method:'list',
+    library:'all',album:alb.name,album_artist:alb.album_artist||'',
+    limit:500,additional:'song_tag,song_audio'
+  }).then(d=>{
+    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
+    const songs=d.data.songs; queue=songs;
+    const list=c.querySelector('.slist'); const head=list.querySelector('.slist-head');
+    list.innerHTML=''; list.appendChild(head);
+    const frag=document.createDocumentFragment();
+    songs.forEach((s,i)=>{
+      const dur=fmt(s.additional?.song_audio?.duration||0);
+      const el=document.createElement('div'); el.className='si';
+      el.innerHTML=`<span class="snum">${s.additional?.song_tag?.track||i+1}</span>
+        <div class="sinfo"><div class="sdet">
+          <div class="sname">${esc(s.title)}</div>
+          <div class="sart">${esc(s.additional?.song_tag?.artist||'')}</div>
+        </div></div><span></span><span class="sdur">${dur}</span>`;
+      el.onclick=()=>playSong(i,songs);
+      frag.appendChild(el);
+    });
+    list.appendChild(frag);
+  });
+}
+
+// ── ARTISTS ─────────────────────────────────────────────
+function loadArtists() {
+  const c=document.getElementById('content');
+  c.innerHTML=`<div class="top-bar"></div><div class="page-title"><h2>Artiesten</h2></div>
+    <div class="loading"><div class="spin"></div> Laden…</div>`;
+  synoAPI('/webapi/AudioStation/artist.cgi',{
+    api:'SYNO.AudioStation.Artist',version:4,method:'list',
+    limit:1000,sort_by:'name',sort_direction:'ASC'
+  }).then(d=>{
+    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
+    c.querySelector('.loading').remove();
+    const grid=document.createElement('div'); grid.className='cgrid';
+    d.data.artists.forEach(a=>{
+      const el=document.createElement('div'); el.className='ccard';
+      el.innerHTML=`<div class="cover round" style="background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:44px">🎤</div>
+        <div class="cname">${esc(a.name)}</div>`;
+      el.onclick=()=>go('artist',a);
+      grid.appendChild(el);
+    });
+    c.appendChild(grid);
+  });
+}
+
+function loadArtist(art) {
+  const c=document.getElementById('content');
+  c.innerHTML=`<div class="top-bar"><button class="back" onclick="go('artists')">←</button>
+      <strong style="font-size:14px">${esc(art.name)}</strong></div>
+    <div class="page-title"><h2>${esc(art.name)}</h2></div>
+    <div class="loading"><div class="spin"></div> Laden…</div>`;
+  synoAPI('/webapi/AudioStation/album.cgi',{
+    api:'SYNO.AudioStation.Album',version:3,method:'list',
+    artist:art.name,limit:200,sort_by:'year',sort_direction:'DESC'
+  }).then(d=>{
+    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
+    c.querySelector('.loading').remove();
+    const grid=document.createElement('div'); grid.className='cgrid';
+    d.data.albums.forEach(a=>{
+      const el=document.createElement('div'); el.className='ccard';
+      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy" onerror="this.style.background='var(--bg4)'" alt="">
+        <div class="cname">${esc(a.name)}</div><div class="csub">${a.year||''}</div>`;
+      el.onclick=()=>go('album',a);
+      grid.appendChild(el);
+    });
+    c.appendChild(grid);
+  });
+}
+
+// ── PLAYBACK ─────────────────────────────────────────────
+function playSong(i, songs) {
+  if (songs) queue=songs;
+  qi=i;
+  const s=queue[i];
+  if (!s) return;
+  const url=streamURL(s.id);
+  aud.src=url; aud.play();
+  document.getElementById('ptitle').textContent=s.title;
+  document.getElementById('partist').textContent=s.additional?.song_tag?.artist||'';
+  document.getElementById('pcov').src=coverURL(s.id);
+  document.querySelectorAll('.si').forEach((el,j)=>el.classList.toggle('now',j===i));
+  if (casting && castSession) castAudio(url,s);
+  // MediaSession: album art + info voor AirPlay en lock screen
+  if ('mediaSession' in navigator) {
+    const artUrl = `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${s.id}&type=song&_sid=${sid}`;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  s.title,
+      artist: s.additional?.song_tag?.artist || '',
+      album:  s.additional?.song_tag?.album  || '',
+      artwork:[{src: artUrl, sizes:'512x512', type:'image/jpeg'}]
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+    navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+  }
+}
+
+function togglePlay(){aud.paused?aud.play():aud.pause()}
+function nextSong(){if(qi<queue.length-1)playSong(qi+1)}
+function prevSong(){aud.currentTime>3?aud.currentTime=0:qi>0&&playSong(qi-1)}
+
+aud.addEventListener('timeupdate',()=>{
+  if(!aud.duration)return;
+  document.getElementById('pfill').style.width=(aud.currentTime/aud.duration*100)+'%';
+  document.getElementById('ct').textContent=fmt(aud.currentTime);
+});
+aud.addEventListener('loadedmetadata',()=>document.getElementById('tt').textContent=fmt(aud.duration));
+aud.addEventListener('ended',nextSong);
+aud.addEventListener('play',()=>setPauseIcon(true));
+aud.addEventListener('pause',()=>setPauseIcon(false));
+
+function setPauseIcon(playing){
+  document.getElementById('playico').innerHTML=playing
+    ?'<path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>'
+    :'<path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>';
+}
+
+function seekTo(e){
+  const b=document.getElementById('ptrack');
+  aud.currentTime=(e.offsetX/b.offsetWidth)*aud.duration;
+}
+
+let lastVol=0.8; aud.volume=0.8;
+function setVol(e){
+  const b=document.getElementById('vtrack');
+  const v=Math.max(0,Math.min(1,e.offsetX/b.offsetWidth));
+  aud.volume=v; lastVol=v;
+  document.getElementById('vfill').style.width=(v*100)+'%';
+}
+function toggleMute(){
+  if(aud.volume>0){lastVol=aud.volume;aud.volume=0;document.getElementById('vfill').style.width='0%';}
+  else{aud.volume=lastVol;document.getElementById('vfill').style.width=(lastVol*100)+'%';}
+}
+
+// ── GOOGLE CAST ──────────────────────────────────────────
+window['__onGCastApiAvailable']=function(ok){
+  if(!ok)return;
+  cast.framework.CastContext.getInstance().setOptions({
+    receiverApplicationId:chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+    autoJoinPolicy:chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+  });
+  cast.framework.CastContext.getInstance().addEventListener(
+    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,e=>{
+      const s=e.sessionState;
+      if(s===cast.framework.SessionState.SESSION_STARTED){
+        casting=true; castSession=cast.framework.CastContext.getInstance().getCurrentSession();
+        document.getElementById('castbtn').classList.add('on');
+        if(qi>=0)playSong(qi);
+      } else if(s===cast.framework.SessionState.SESSION_ENDED){
+        casting=false; castSession=null;
+        document.getElementById('castbtn').classList.remove('on');
+      }
+    }
+  );
+};
+
+function doCast(){
+  if(typeof cast!=='undefined'){
+    cast.framework.CastContext.getInstance().requestSession();
+  } else {
+    alert('Google Cast werkt alleen in Chrome.\nOpen deze pagina in Chrome om te casten naar je Google Home.');
+  }
+}
+
+function castAudio(url,s){
+  if(!castSession)return;
+  const mi=new chrome.cast.media.MediaInfo(url,'audio/mpeg');
+  mi.metadata=new chrome.cast.media.MusicTrackMediaMetadata();
+  mi.metadata.title=s.title;
+  mi.metadata.artist=s.additional?.song_tag?.artist||'';
+  mi.metadata.albumName=s.additional?.song_tag?.album||'';
+  // Album art meesturen zodat het op het Google Home display verschijnt
+  const artUrl = `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${s.id}&type=song&_sid=${sid}`;
+  mi.metadata.images=[new chrome.cast.Image(artUrl)];
+  castSession.loadMedia(new chrome.cast.media.LoadRequest(mi));
+}
+
+// ── AIRPLAY (Safari) ─────────────────────────────────────
+function doAirPlay(){
+  const a=document.getElementById('aud');
+  if(a.webkitShowPlaybackTargetPicker){
+    a.webkitShowPlaybackTargetPicker();
+  } else {
+    alert('AirPlay is niet beschikbaar in deze browser. Gebruik Safari.');
+  }
+}
+
+// Toon juiste knop per browser
+(function(){
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if(isSafari){
+    document.getElementById('castbtn').style.display='none';
+    document.getElementById('airplaybtn').style.display='flex';
+  }
+})();
+</script>
+
+<!-- Cast SDK (alleen actief in Chrome) -->
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+</body>
+</html>
