@@ -258,11 +258,11 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 // ── CONFIG ──────────────────────────────────────────────
 const SRV = {
   local: 'http://192.168.1.169:5000',
-  ext:   'https://satternas.de9.quickconnect.to'
+  ext:   'http://satternas.synology.me:5000'
 };
 
-// Thuis (localhost) = lokaal IP via Python proxy
-// Extern (music.satter.tv) = via Cloudflare Worker op /api/
+// Thuis (localhost) = lokaal via Python proxy
+// Online (music.satter.tv) = altijd extern via Cloudflare Worker
 const isHome = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 let mode = isHome ? 'local' : 'ext';
 let sid  = null;
@@ -279,6 +279,8 @@ function setSrv(m) {
 }
 // Automatisch juiste server kiezen
 setSrv(mode);
+// Verberg toggle op de online versie
+if (!isHome) document.querySelector('.toggle').style.display = 'none';
 
 async function doLogin() {
   const user = document.getElementById('uname').value.trim();
