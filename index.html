@@ -309,8 +309,8 @@ async function doLogin() {
 
 // ── API HELPER ──────────────────────────────────────────
 function apiBase() {
-  // Thuis: Python proxy; Extern: Cloudflare Worker via /api/
-  return isHome ? '/api-local' : '/api';
+  // Thuis: Python proxy; Extern: Cloudflare Worker via api.satter.tv
+  return isHome ? '/api-local' : 'https://api.satter.tv';
 }
 
 async function synoAPI(path, params={}) {
