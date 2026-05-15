@@ -328,10 +328,10 @@ function streamURL(id) {
   return `${apiBase()}/webapi/AudioStation/stream.cgi?api=SYNO.AudioStation.Stream&version=2&method=stream&id=${id}&_sid=${sid}`;
 }
 function coverURL(id) {
-  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${id}&type=song&_sid=${sid}`;
+  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=2&method=getcover&item_id=${id}&type=song&_sid=${sid}`;
 }
 function albumCoverURL(album, artist) {
-  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&album_name=${enc(album)}&album_artist_name=${enc(artist||'')}&type=album&_sid=${sid}`;
+  return `${apiBase()}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=2&method=getcover&album_name=${enc(album)}&album_artist_name=${enc(artist||'')}&type=album&_sid=${sid}`;
 }
 const enc = s => encodeURIComponent(s||'');
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -414,7 +414,7 @@ function loadAlbums() {
     <div class="loading"><div class="spin"></div> Laden…</div>`;
   synoAPI('/webapi/AudioStation/album.cgi',{
     api:'SYNO.AudioStation.Album',version:3,method:'list',
-    limit:1000,sort_by:'name',sort_direction:'ASC'
+    library:'all',limit:1000,sort_by:'name',sort_direction:'ASC'
   }).then(d=>{
     if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
     c.querySelector('.loading').remove();
@@ -471,8 +471,8 @@ function loadArtists() {
   c.innerHTML=`<div class="top-bar"></div><div class="page-title"><h2>Artiesten</h2></div>
     <div class="loading"><div class="spin"></div> Laden…</div>`;
   synoAPI('/webapi/AudioStation/artist.cgi',{
-    api:'SYNO.AudioStation.Artist',version:4,method:'list',
-    limit:1000,sort_by:'name',sort_direction:'ASC'
+    api:'SYNO.AudioStation.Artist',version:3,method:'list',
+    library:'all',limit:1000,sort_by:'name',sort_direction:'ASC'
   }).then(d=>{
     if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
     c.querySelector('.loading').remove();
