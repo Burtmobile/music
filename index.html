@@ -179,7 +179,12 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
     <!-- Sidebar -->
     <nav class="sidebar">
-      <div class="logo">🎵 <span>Satter</span></div>
+      <div class="logo" style="display:flex;align-items:center;justify-content:space-between">
+        <span>🎵 <span style="color:var(--accent)">Satter</span></span>
+        <button onclick="doLogout()" title="Uitloggen / wissel verbinding"
+          style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px"
+          onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">⏏</button>
+      </div>
       <div class="nav-box">
         <button class="ni on" id="n-songs" onclick="go('songs')">
           <svg viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>
@@ -379,7 +384,7 @@ function loadSongs(q='') {
   if (q) params.title = q;
 
   synoAPI('/webapi/AudioStation/song.cgi', params).then(d=>{
-    if (!d.success) { c.querySelector('.loading').textContent='Fout bij laden.'; return; }
+    if (!d.success) { c.querySelector('.loading').textContent=`Fout bij laden (code ${d.error?.code||'?'}). Probeer opnieuw in te loggen via ⏏`; return; }
     const songs = d.data.songs;
     queue = songs;
     const list = c.querySelector('.slist');
@@ -404,7 +409,7 @@ function loadSongs(q='') {
       frag.appendChild(el);
     });
     list.appendChild(frag);
-  }).catch(()=>{ c.querySelector('.loading').textContent='Fout bij laden.'; });
+  }).catch(e=>{ c.querySelector('.loading').textContent=`Verbindingsfout: ${e.message}. Controleer of de server bereikbaar is.`; });
 }
 
 // ── ALBUMS ──────────────────────────────────────────────
@@ -537,6 +542,16 @@ function playSong(i, songs) {
     navigator.mediaSession.setActionHandler('nexttrack', nextSong);
     navigator.mediaSession.setActionHandler('previoustrack', prevSong);
   }
+}
+
+function doLogout() {
+  sid = null; queue = []; qi = -1;
+  aud.pause(); aud.src = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('upass').value = '';
+  document.getElementById('lerr').style.display = 'none';
+  setSrv(mode);
 }
 
 function togglePlay(){aud.paused?aud.play():aud.pause()}
