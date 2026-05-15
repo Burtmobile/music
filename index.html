@@ -271,7 +271,7 @@ const SRV = {
 const isHome = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 let mode = isHome ? 'local' : 'ext';
 let sid  = null;
-let queue = [], qi = -1;
+let queue = [], qi = -1, allSongs = null;
 let castSession = null, casting = false;
 const aud = document.getElementById('aud');
 
@@ -387,6 +387,7 @@ function loadSongs(q='') {
     if (!d.success) { c.querySelector('.loading').textContent=`Fout bij laden (code ${d.error?.code||'?'}). Probeer opnieuw in te loggen via ⏏`; return; }
     const songs = d.data.songs;
     queue = songs;
+    if (!q) allSongs = songs; // cache voor albums/artiesten
     const list = c.querySelector('.slist');
     const head = list.querySelector('.slist-head');
     list.innerHTML=''; list.appendChild(head);
@@ -412,123 +413,140 @@ function loadSongs(q='') {
   }).catch(e=>{ c.querySelector('.loading').textContent=`Verbindingsfout: ${e.message}. Controleer of de server bereikbaar is.`; });
 }
 
-// ── ALBUMS ──────────────────────────────────────────────
-function loadAlbums() {
+// ── ALBUMS & ARTIESTEN (afgeleid uit songs-cache) ───────
+async function getSongs() {
+  if (allSongs) return allSongs;
+  const c = document.getElementById('content');
+  const d = await synoAPI('/webapi/AudioStation/song.cgi', {
+    api:'SYNO.AudioStation.Song', version:3, method:'list',
+    library:'all', limit:2000, offset:0,
+    sort_by:'title', sort_direction:'ASC',
+    additional:'song_tag,song_audio'
+  });
+  if (!d.success) return null;
+  allSongs = d.data.songs;
+  return allSongs;
+}
+
+function buildAlbumMap(songs) {
+  const map = new Map();
+  songs.forEach(s => {
+    const tag = s.additional?.song_tag || {};
+    const key = (tag.album||'Onbekend') + '§' + (tag.album_artist||tag.artist||'');
+    if (!map.has(key)) map.set(key, {
+      name: tag.album||'Onbekend',
+      artist: tag.album_artist||tag.artist||'',
+      year: tag.year||'',
+      songs: [], coverId: s.id
+    });
+    map.get(key).songs.push(s);
+  });
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+function buildArtistMap(songs) {
+  const map = new Map();
+  songs.forEach(s => {
+    const tag = s.additional?.song_tag || {};
+    const name = tag.artist||'Onbekend';
+    if (!map.has(name)) map.set(name, {name, songs:[], coverId:s.id});
+    map.get(name).songs.push(s);
+  });
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+function albumCardHTML(a) {
+  return `<img class="cover" src="${coverURL(a.coverId)}" loading="lazy"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+    <div class="cover" style="display:none;align-items:center;justify-content:center;font-size:36px;background:var(--bg4)">💿</div>
+    <div class="cname">${esc(a.name)}</div>
+    <div class="csub">${esc(a.artist||'Onbekend')}</div>`;
+}
+
+async function loadAlbums() {
   const c = document.getElementById('content');
   c.innerHTML=`<div class="top-bar"></div><div class="page-title"><h2>Albums</h2></div>
     <div class="loading"><div class="spin"></div> Laden…</div>`;
-  synoAPI('/webapi/AudioStation/album.cgi',{
-    api:'SYNO.AudioStation.Album',version:3,method:'list',
-    limit:1000,sort_by:'name',sort_direction:'ASC'
-  }).then(d=>{
-    const loading = c.querySelector('.loading');
-    if(!d||!d.success){if(loading)loading.textContent=`Fout laden albums (${d?.error?.code||'?'})`;return;}
-    const albums = d.data?.albums||[];
-    if(!albums.length){if(loading)loading.textContent='Geen albums gevonden.';return;}
-    if(loading)loading.remove();
-    const grid=document.createElement('div'); grid.className='cgrid';
-    albums.forEach(a=>{
-      const el=document.createElement('div'); el.className='ccard';
-      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
-        <div class="cover" style="display:none;align-items:center;justify-content:center;font-size:36px;background:var(--bg4)">💿</div>
-        <div class="cname">${esc(a.name)}</div>
-        <div class="csub">${esc(a.album_artist||'Onbekend')}</div>`;
-      el.onclick=()=>go('album',a);
-      grid.appendChild(el);
-    });
-    c.appendChild(grid);
-  }).catch(e=>{
-    const loading=c.querySelector('.loading');
-    if(loading)loading.textContent=`Verbindingsfout albums: ${e.message}`;
+  const songs = await getSongs();
+  const loading = c.querySelector('.loading');
+  if (!songs) { if(loading) loading.textContent='Fout bij laden — probeer opnieuw in te loggen via ⏏'; return; }
+  const albums = buildAlbumMap(songs);
+  if (!albums.length) { if(loading) loading.textContent='Geen albums gevonden.'; return; }
+  if (loading) loading.remove();
+  const grid = document.createElement('div'); grid.className='cgrid';
+  albums.forEach(a => {
+    const el = document.createElement('div'); el.className='ccard';
+    el.innerHTML = albumCardHTML(a);
+    el.onclick = () => go('album', a);
+    grid.appendChild(el);
   });
+  c.appendChild(grid);
 }
 
 function loadAlbum(alb) {
   const c = document.getElementById('content');
+  const songs = alb.songs || [];
+  queue = songs;
   c.innerHTML=`<div class="top-bar"><button class="back" onclick="go('albums')">←</button>
       <strong style="font-size:14px">${esc(alb.name)}</strong></div>
-    <div class="page-title"><h2>${esc(alb.name)}</h2><p>${esc(alb.album_artist||'')}</p></div>
+    <div class="page-title"><h2>${esc(alb.name)}</h2><p>${esc(alb.artist||'')}</p></div>
     <div class="slist">
       <div class="slist-head"><span>#</span><span>Nummer</span><span></span><span>Duur</span></div>
-      <div class="loading"><div class="spin"></div> Laden…</div>
     </div>`;
-  synoAPI('/webapi/AudioStation/song.cgi',{
-    api:'SYNO.AudioStation.Song',version:3,method:'list',
-    library:'all',album:alb.name,album_artist:alb.album_artist||'',
-    limit:500,additional:'song_tag,song_audio'
-  }).then(d=>{
-    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
-    const songs=d.data.songs; queue=songs;
-    const list=c.querySelector('.slist'); const head=list.querySelector('.slist-head');
-    list.innerHTML=''; list.appendChild(head);
-    const frag=document.createDocumentFragment();
-    songs.forEach((s,i)=>{
-      const dur=fmt(s.additional?.song_audio?.duration||0);
-      const el=document.createElement('div'); el.className='si';
-      el.innerHTML=`<span class="snum">${s.additional?.song_tag?.track||i+1}</span>
-        <div class="sinfo"><div class="sdet">
-          <div class="sname">${esc(s.title)}</div>
-          <div class="sart">${esc(s.additional?.song_tag?.artist||'')}</div>
-        </div></div><span></span><span class="sdur">${dur}</span>`;
-      el.onclick=()=>playSong(i,songs);
-      frag.appendChild(el);
-    });
-    list.appendChild(frag);
+  const list = c.querySelector('.slist');
+  const frag = document.createDocumentFragment();
+  songs.forEach((s,i) => {
+    const dur = fmt(s.additional?.song_audio?.duration||0);
+    const el = document.createElement('div'); el.className='si';
+    el.innerHTML=`<span class="snum">${s.additional?.song_tag?.track||i+1}</span>
+      <div class="sinfo"><div class="sdet">
+        <div class="sname">${esc(s.title)}</div>
+        <div class="sart">${esc(s.additional?.song_tag?.artist||'')}</div>
+      </div></div><span></span><span class="sdur">${dur}</span>`;
+    el.onclick = () => playSong(i, songs);
+    frag.appendChild(el);
   });
+  list.appendChild(frag);
 }
 
 // ── ARTISTS ─────────────────────────────────────────────
-function loadArtists() {
-  const c=document.getElementById('content');
+async function loadArtists() {
+  const c = document.getElementById('content');
   c.innerHTML=`<div class="top-bar"></div><div class="page-title"><h2>Artiesten</h2></div>
     <div class="loading"><div class="spin"></div> Laden…</div>`;
-  synoAPI('/webapi/AudioStation/artist.cgi',{
-    api:'SYNO.AudioStation.Artist',version:3,method:'list',
-    limit:1000,sort_by:'name',sort_direction:'ASC'
-  }).then(d=>{
-    const loading=c.querySelector('.loading');
-    if(!d||!d.success){if(loading)loading.textContent=`Fout laden artiesten (${d?.error?.code||'?'})`;return;}
-    const artists=d.data?.artists||[];
-    if(!artists.length){if(loading)loading.textContent='Geen artiesten gevonden.';return;}
-    if(loading)loading.remove();
-    const grid=document.createElement('div'); grid.className='cgrid';
-    artists.forEach(a=>{
-      const el=document.createElement('div'); el.className='ccard';
-      el.innerHTML=`<div class="cover round" style="background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:44px">🎤</div>
-        <div class="cname">${esc(a.name)}</div>`;
-      el.onclick=()=>go('artist',a);
-      grid.appendChild(el);
-    });
-    c.appendChild(grid);
-  }).catch(e=>{
-    const loading=c.querySelector('.loading');
-    if(loading)loading.textContent=`Verbindingsfout artiesten: ${e.message}`;
+  const songs = await getSongs();
+  const loading = c.querySelector('.loading');
+  if (!songs) { if(loading) loading.textContent='Fout bij laden — probeer opnieuw in te loggen via ⏏'; return; }
+  const artists = buildArtistMap(songs);
+  if (!artists.length) { if(loading) loading.textContent='Geen artiesten gevonden.'; return; }
+  if (loading) loading.remove();
+  const grid = document.createElement('div'); grid.className='cgrid';
+  artists.forEach(a => {
+    const el = document.createElement('div'); el.className='ccard';
+    el.innerHTML=`<div class="cover round" style="background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:44px">🎤</div>
+      <div class="cname">${esc(a.name)}</div>
+      <div class="csub">${a.songs.length} nummer${a.songs.length!==1?'s':''}</div>`;
+    el.onclick = () => go('artist', a);
+    grid.appendChild(el);
   });
+  c.appendChild(grid);
 }
 
 function loadArtist(art) {
-  const c=document.getElementById('content');
+  const c = document.getElementById('content');
+  const albums = buildAlbumMap(art.songs||[]);
   c.innerHTML=`<div class="top-bar"><button class="back" onclick="go('artists')">←</button>
       <strong style="font-size:14px">${esc(art.name)}</strong></div>
-    <div class="page-title"><h2>${esc(art.name)}</h2></div>
-    <div class="loading"><div class="spin"></div> Laden…</div>`;
-  synoAPI('/webapi/AudioStation/album.cgi',{
-    api:'SYNO.AudioStation.Album',version:3,method:'list',
-    artist:art.name,limit:200,sort_by:'year',sort_direction:'DESC'
-  }).then(d=>{
-    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
-    c.querySelector('.loading').remove();
-    const grid=document.createElement('div'); grid.className='cgrid';
-    d.data.albums.forEach(a=>{
-      const el=document.createElement('div'); el.className='ccard';
-      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy" onerror="this.style.background='var(--bg4)'" alt="">
-        <div class="cname">${esc(a.name)}</div><div class="csub">${a.year||''}</div>`;
-      el.onclick=()=>go('album',a);
-      grid.appendChild(el);
-    });
-    c.appendChild(grid);
+    <div class="page-title"><h2>${esc(art.name)}</h2>
+    <p>${art.songs?.length||0} nummers · ${albums.length} album${albums.length!==1?'s':''}</p></div>`;
+  const grid = document.createElement('div'); grid.className='cgrid';
+  albums.forEach(a => {
+    const el = document.createElement('div'); el.className='ccard';
+    el.innerHTML = albumCardHTML(a);
+    el.onclick = () => go('album', a);
+    grid.appendChild(el);
   });
+  c.appendChild(grid);
 }
 
 // ── PLAYBACK ─────────────────────────────────────────────
@@ -559,7 +577,7 @@ function playSong(i, songs) {
 }
 
 function doLogout() {
-  sid = null; queue = []; qi = -1;
+  sid = null; queue = []; qi = -1; allSongs = null;
   aud.pause(); aud.src = '';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login').style.display = 'flex';
