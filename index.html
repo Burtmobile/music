@@ -400,7 +400,7 @@ function loadSongs(q='') {
       el.innerHTML = `
         <span class="snum">${i+1}</span>
         <div class="sinfo">
-          <img class="sthumb" src="${coverURL(s.id)}" loading="lazy" onerror="this.src=''" alt="">
+          <img class="sthumb" src="${coverURL(s.id)}" loading="lazy" onerror="this.src='';this.style.background='var(--bg4)'" alt="">
           <div class="sdet"><div class="sname">${esc(s.title)}</div><div class="sart">${esc(art)}</div></div>
         </div>
         <span class="salb">${esc(alb)}</span>
@@ -419,20 +419,28 @@ function loadAlbums() {
     <div class="loading"><div class="spin"></div> Laden…</div>`;
   synoAPI('/webapi/AudioStation/album.cgi',{
     api:'SYNO.AudioStation.Album',version:3,method:'list',
-    library:'all',limit:1000,sort_by:'name',sort_direction:'ASC'
+    limit:1000,sort_by:'name',sort_direction:'ASC'
   }).then(d=>{
-    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
-    c.querySelector('.loading').remove();
+    const loading = c.querySelector('.loading');
+    if(!d||!d.success){if(loading)loading.textContent=`Fout laden albums (${d?.error?.code||'?'})`;return;}
+    const albums = d.data?.albums||[];
+    if(!albums.length){if(loading)loading.textContent='Geen albums gevonden.';return;}
+    if(loading)loading.remove();
     const grid=document.createElement('div'); grid.className='cgrid';
-    d.data.albums.forEach(a=>{
+    albums.forEach(a=>{
       const el=document.createElement('div'); el.className='ccard';
-      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy" onerror="this.style.background='var(--bg4)'" alt="">
+      el.innerHTML=`<img class="cover" src="${albumCoverURL(a.name,a.album_artist)}" loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+        <div class="cover" style="display:none;align-items:center;justify-content:center;font-size:36px;background:var(--bg4)">💿</div>
         <div class="cname">${esc(a.name)}</div>
         <div class="csub">${esc(a.album_artist||'Onbekend')}</div>`;
       el.onclick=()=>go('album',a);
       grid.appendChild(el);
     });
     c.appendChild(grid);
+  }).catch(e=>{
+    const loading=c.querySelector('.loading');
+    if(loading)loading.textContent=`Verbindingsfout albums: ${e.message}`;
   });
 }
 
@@ -477,12 +485,15 @@ function loadArtists() {
     <div class="loading"><div class="spin"></div> Laden…</div>`;
   synoAPI('/webapi/AudioStation/artist.cgi',{
     api:'SYNO.AudioStation.Artist',version:3,method:'list',
-    library:'all',limit:1000,sort_by:'name',sort_direction:'ASC'
+    limit:1000,sort_by:'name',sort_direction:'ASC'
   }).then(d=>{
-    if(!d.success){c.querySelector('.loading').textContent='Fout.';return;}
-    c.querySelector('.loading').remove();
+    const loading=c.querySelector('.loading');
+    if(!d||!d.success){if(loading)loading.textContent=`Fout laden artiesten (${d?.error?.code||'?'})`;return;}
+    const artists=d.data?.artists||[];
+    if(!artists.length){if(loading)loading.textContent='Geen artiesten gevonden.';return;}
+    if(loading)loading.remove();
     const grid=document.createElement('div'); grid.className='cgrid';
-    d.data.artists.forEach(a=>{
+    artists.forEach(a=>{
       const el=document.createElement('div'); el.className='ccard';
       el.innerHTML=`<div class="cover round" style="background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:44px">🎤</div>
         <div class="cname">${esc(a.name)}</div>`;
@@ -490,6 +501,9 @@ function loadArtists() {
       grid.appendChild(el);
     });
     c.appendChild(grid);
+  }).catch(e=>{
+    const loading=c.querySelector('.loading');
+    if(loading)loading.textContent=`Verbindingsfout artiesten: ${e.message}`;
   });
 }
 
