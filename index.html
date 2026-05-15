@@ -311,8 +311,8 @@ async function doLogin() {
 
 // ── API HELPER ──────────────────────────────────────────
 function apiBase() {
-  // Thuis: Python proxy; Extern: Cloudflare Worker via api.satter.tv
-  return isHome ? '/api-local' : 'https://api.satter.tv';
+  // Thuis: Python proxy; Extern: Cloudflare Worker via workers.dev URL
+  return isHome ? '/api-local' : 'https://syno-proxy.bertsatter.workers.dev';
 }
 
 async function synoAPI(path, params={}) {
@@ -526,7 +526,7 @@ function playSong(i, songs) {
   if (casting && castSession) castAudio(url,s);
   // MediaSession: album art + info voor AirPlay en lock screen
   if ('mediaSession' in navigator) {
-    const artUrl = `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${s.id}&type=song&_sid=${sid}`;
+    const artUrl = coverURL(s.id);
     navigator.mediaSession.metadata = new MediaMetadata({
       title:  s.title,
       artist: s.additional?.song_tag?.artist || '',
@@ -613,8 +613,7 @@ function castAudio(url,s){
   mi.metadata.artist=s.additional?.song_tag?.artist||'';
   mi.metadata.albumName=s.additional?.song_tag?.album||'';
   // Album art meesturen zodat het op het Google Home display verschijnt
-  const artUrl = `${SRV[mode]}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=3&method=getcover&item_id=${s.id}&type=song&_sid=${sid}`;
-  mi.metadata.images=[new chrome.cast.Image(artUrl)];
+  mi.metadata.images=[new chrome.cast.Image(coverURL(s.id))];
   castSession.loadMedia(new chrome.cast.media.LoadRequest(mi));
 }
 
