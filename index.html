@@ -2,22 +2,28 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Satter Music">
+<meta name="theme-color" content="#0a0a0a">
 <title>Satter Music</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   --bg0:#0a0a0a;--bg1:#121212;--bg2:#181818;--bg3:#282828;--bg4:#3e3e3e;
   --accent:#1db954;--accent2:#1ed760;
   --t1:#ffffff;--t2:#b3b3b3;--t3:#6b6b6b;
   --player:90px;--side:220px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
 }
-html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:var(--t1)}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:var(--t1);overscroll-behavior:none}
 
 /* ── LOGIN ── */
-#login{display:flex;align-items:center;justify-content:center;height:100vh;
-  background:linear-gradient(135deg,#0d1b2a 0%,#1a2a1a 60%,#0a1a0a 100%)}
-.card{background:var(--bg2);padding:44px;border-radius:16px;width:370px;
+#login{display:flex;align-items:center;justify-content:center;height:100vh;height:100dvh;
+  background:linear-gradient(135deg,#0d1b2a 0%,#1a2a1a 60%,#0a1a0a 100%);padding:16px}
+.card{background:var(--bg2);padding:44px;border-radius:16px;width:100%;max-width:370px;
   box-shadow:0 24px 64px rgba(0,0,0,.6)}
 .card h1{font-size:26px;text-align:center;margin-bottom:6px}
 .card .sub{color:var(--t2);text-align:center;font-size:13px;margin-bottom:28px}
@@ -29,17 +35,17 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .fg label{display:block;font-size:11px;color:var(--t2);text-transform:uppercase;
   letter-spacing:.6px;margin-bottom:5px}
 .fg input{width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid transparent;
-  border-radius:8px;color:var(--t1);font-size:14px;transition:.2s}
+  border-radius:8px;color:var(--t1);font-size:16px;transition:.2s}
 .fg input:focus{outline:none;border-color:var(--accent)}
 .btn-login{width:100%;padding:13px;background:var(--accent);border:none;border-radius:50px;
   color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;transition:.15s}
-.btn-login:hover{background:var(--accent2);transform:scale(1.02)}
+.btn-login:hover{background:var(--accent2)}
 .btn-login:active{transform:scale(.98)}
 .login-err{color:#e05555;text-align:center;font-size:12px;margin-top:10px;display:none}
 
 /* ── APP SHELL ── */
-#app{display:none;flex-direction:column;height:100vh}
-.mid{display:flex;flex:1;overflow:hidden}
+#app{display:none;flex-direction:column;height:100vh;height:100dvh}
+.mid{display:flex;flex:1;overflow:hidden;min-height:0}
 
 /* ── SIDEBAR ── */
 .sidebar{width:var(--side);background:var(--bg0);display:flex;flex-direction:column;
@@ -55,16 +61,18 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .ni svg{flex-shrink:0;width:18px;height:18px;fill:currentColor}
 
 /* ── CONTENT ── */
-.content{flex:1;overflow-y:auto;background:linear-gradient(180deg,#162416 0%,var(--bg1) 280px)}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:linear-gradient(180deg,#162416 0%,var(--bg1) 280px)}
 .content::-webkit-scrollbar{width:6px}
 .content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
 .top-bar{padding:18px 22px 14px;display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;background:rgba(10,10,10,.75);backdrop-filter:blur(12px);z-index:20}
+  position:sticky;top:0;background:rgba(10,10,10,.75);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);z-index:20}
 .searchbox{position:relative;flex:1;max-width:360px}
 .searchbox svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);
   fill:var(--t2);width:14px;height:14px}
-.searchbox input{width:100%;padding:9px 14px 9px 34px;background:var(--bg3);border:none;
-  border-radius:50px;color:var(--t1);font-size:13px}
+.searchbox input{width:100%;padding:10px 14px 10px 34px;background:var(--bg3);border:none;
+  border-radius:50px;color:var(--t1);font-size:14px}
 .searchbox input:focus{outline:2px solid rgba(255,255,255,.3)}
 .page-title{padding:4px 22px 20px}
 .page-title h2{font-size:28px;font-weight:900}
@@ -78,6 +86,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .si{display:grid;grid-template-columns:36px 1fr 1fr 64px;
   padding:7px 14px;border-radius:4px;cursor:pointer;align-items:center;transition:.1s}
 .si:hover{background:var(--bg4)}
+.si:active{background:var(--bg4)}
 .si.now{color:var(--accent)}
 .si.now .snum{color:var(--accent)}
 .snum{color:var(--t2);font-size:13px}
@@ -93,6 +102,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:0 22px 40px}
 .ccard{background:var(--bg2);border-radius:8px;padding:14px;cursor:pointer;transition:.15s}
 .ccard:hover{background:var(--bg4)}
+.ccard:active{background:var(--bg4)}
 .cover{width:100%;aspect-ratio:1/1;border-radius:6px;background:var(--bg3);
   margin-bottom:10px;object-fit:cover;display:block}
 .cover.round{border-radius:50%}
@@ -113,7 +123,9 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 /* ── PLAYER BAR ── */
 .pbar{height:var(--player);background:var(--bg3);border-top:1px solid rgba(255,255,255,.08);
   display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
-.pinfo{display:flex;align-items:center;gap:10px;width:200px;flex-shrink:0}
+.pinfo{display:flex;align-items:center;gap:10px;width:200px;flex-shrink:0;cursor:pointer;
+  padding:4px;border-radius:6px;transition:.1s}
+.pinfo:hover{background:rgba(255,255,255,.04)}
 #pcov{width:52px;height:52px;border-radius:4px;background:var(--bg0);object-fit:cover;flex-shrink:0}
 .pmeta{min-width:0}
 #ptitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -124,7 +136,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   display:flex;align-items:center;transition:.1s}
 .cb:hover{color:var(--t1)}
 .cb svg{width:18px;height:18px;fill:currentColor}
-.cb.play{width:36px;height:36px;background:var(--t1);border-radius:50%;color:#000}
+.cb.play{width:36px;height:36px;background:var(--t1);border-radius:50%;color:#000;
+  justify-content:center}
 .cb.play svg{width:16px;height:16px}
 .cb.play:hover{transform:scale(1.08);background:var(--t1)}
 .prog{display:flex;align-items:center;gap:7px;width:100%;max-width:460px}
@@ -140,6 +153,110 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 #castbtn:hover{color:var(--t1)}
 #castbtn.on{color:var(--accent)}
 #castbtn svg{width:20px;height:20px;fill:currentColor}
+
+/* ── NOW PLAYING (full screen overlay) ── */
+.np{position:fixed;inset:0;z-index:200;
+  background:linear-gradient(180deg,var(--np-bg,#1f3a1f) 0%,#0a0a0a 60%,#0a0a0a 100%);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  padding:calc(16px + var(--safe-t)) 24px calc(20px + var(--safe-b));
+  overflow:hidden}
+.np.on{transform:translateY(0)}
+.np-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;flex-shrink:0}
+.np-close{background:none;border:none;color:var(--t1);cursor:pointer;padding:6px;
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.np-close svg{width:28px;height:28px;fill:currentColor}
+.np-label{font-size:11px;font-weight:800;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--t1)}
+.np-body{flex:1;display:flex;flex-direction:column;justify-content:center;
+  max-width:420px;width:100%;margin:0 auto;min-height:0;gap:20px}
+.np-art{width:100%;aspect-ratio:1/1;border-radius:8px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);object-fit:cover;background:var(--bg3);
+  max-height:55vh;align-self:center}
+.np-art-fallback{display:none;align-items:center;justify-content:center;
+  font-size:80px;background:var(--bg3);border-radius:8px;width:100%;aspect-ratio:1/1;
+  max-height:55vh}
+.np-info{width:100%}
+.np-title{font-size:22px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-artist{font-size:15px;color:var(--t2);margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-album{font-size:12px;color:var(--t3);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-progress{width:100%}
+.np-track{height:4px;background:rgba(255,255,255,.25);border-radius:2px;cursor:pointer;position:relative}
+.np-fill{height:100%;background:var(--t1);border-radius:2px;pointer-events:none}
+.np-times{display:flex;justify-content:space-between;
+  font-size:11px;color:var(--t2);margin-top:8px}
+.np-controls{display:flex;align-items:center;justify-content:center;
+  gap:30px;width:100%}
+.np-controls button{background:none;border:none;color:var(--t1);cursor:pointer;
+  padding:0;display:flex;align-items:center;justify-content:center}
+.np-controls button:disabled{opacity:.4}
+.np-prev,.np-next{width:54px;height:54px}
+.np-prev svg,.np-next svg{width:34px;height:34px;fill:currentColor}
+.np-play{width:68px;height:68px;background:var(--t1);color:#000;border-radius:50%}
+.np-play svg{width:26px;height:26px;fill:currentColor}
+.np-extras{display:flex;align-items:center;justify-content:space-around;
+  width:100%;max-width:420px;margin:8px auto 0}
+.np-extras button{background:none;border:none;color:var(--t2);cursor:pointer;
+  padding:8px;display:flex;align-items:center;justify-content:center;transition:.1s}
+.np-extras button:hover{color:var(--t1)}
+.np-extras button.on{color:var(--accent)}
+.np-extras button svg{width:22px;height:22px;fill:currentColor}
+.np-vol{display:flex;align-items:center;gap:8px;flex:1;max-width:200px}
+.np-vol .vtrack{flex:1;width:auto}
+
+/* ── MOBILE ── */
+@media (max-width:768px){
+  :root{--player:64px}
+  .mid{flex-direction:column}
+  .content{order:1}
+  .sidebar{order:2;width:auto;height:auto;flex-direction:row;padding:0;gap:0;
+    background:var(--bg0);border-top:1px solid rgba(255,255,255,.06);
+    padding-bottom:var(--safe-b);flex-shrink:0}
+  .sidebar .logo{display:none}
+  .nav-box{flex:1;display:flex;border-radius:0;background:transparent;padding:0}
+  .ni{flex:1;flex-direction:column;gap:3px;padding:8px 0;font-size:10px;
+    justify-content:center;align-items:center;text-align:center;border-radius:0}
+  .ni svg{width:22px;height:22px}
+  .top-bar{padding:14px 14px 10px;gap:8px}
+  .page-title{padding:4px 16px 14px}
+  .page-title h2{font-size:24px}
+  .page-title p{font-size:12px}
+  .slist{padding:0 6px 24px}
+  .slist-head{display:none}
+  .si{grid-template-columns:1fr 50px;padding:6px 10px;gap:0}
+  .si .snum{display:none}
+  .si .salb{display:none}
+  .sname{font-size:14px}
+  .sart{font-size:12px}
+  .sthumb{width:44px;height:44px;border-radius:4px}
+  .cgrid{grid-template-columns:repeat(2,1fr);gap:10px;padding:0 14px 24px}
+  .ccard{padding:10px}
+  .cname{font-size:13px}
+  .csub{font-size:11px}
+  .pbar{padding:0 10px;gap:10px}
+  .pinfo{width:auto;flex:1;min-width:0;padding:2px}
+  #pcov{width:42px;height:42px}
+  #ptitle{font-size:13px}
+  #partist{font-size:11px}
+  .pctrl{flex:0 0 auto;flex-direction:row;gap:0;width:auto}
+  .pctrl .pbts{gap:0}
+  .pctrl .pbts .cb:not(.play){display:none}
+  .cb.play{width:42px;height:42px}
+  .cb.play svg{width:18px;height:18px}
+  .pctrl .prog{display:none}
+  .pright{display:none}
+  .np{padding-left:20px;padding-right:20px}
+  .np-title{font-size:20px}
+  .np-extras{margin-top:4px}
+}
+
+/* iPad+ tweak */
+@media (min-width:769px) and (max-width:1024px){
+  :root{--side:180px}
+}
 </style>
 </head>
 <body>
@@ -161,7 +278,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
     </div>
     <div class="fg">
       <label>Gebruikersnaam</label>
-      <input id="uname" value="Bert Satter">
+      <input id="uname" value="Bert Satter" autocapitalize="off" autocorrect="off">
     </div>
     <div class="fg">
       <label>Wachtwoord</label>
@@ -177,7 +294,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 <div id="app">
   <div class="mid">
 
-    <!-- Sidebar -->
+    <!-- Sidebar / bottom nav -->
     <nav class="sidebar">
       <div class="logo" style="display:flex;align-items:center;justify-content:space-between">
         <span>🎵 <span style="color:var(--accent)">Satter</span></span>
@@ -207,7 +324,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
   <!-- Player bar -->
   <div class="pbar">
-    <div class="pinfo">
+    <div class="pinfo" onclick="openNowPlaying()">
       <img id="pcov" src="" alt="">
       <div class="pmeta">
         <div id="ptitle">—</div>
@@ -220,7 +337,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         <button class="cb" onclick="prevSong()" title="Vorige">
           <svg viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z"/></svg>
         </button>
-        <button class="cb play" id="playbtn" onclick="togglePlay()">
+        <button class="cb play" id="playbtn" onclick="event.stopPropagation();togglePlay()">
           <svg id="playico" viewBox="0 0 16 16">
             <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
           </svg>
@@ -257,6 +374,57 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   </div>
 </div>
 
+<!-- ══════════ NOW PLAYING ══════════ -->
+<div id="nowplaying" class="np">
+  <div class="np-header">
+    <button class="np-close" onclick="closeNowPlaying()" aria-label="Sluit">
+      <svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+    </button>
+    <span class="np-label">Speelt nu</span>
+    <span style="width:44px"></span>
+  </div>
+  <div class="np-body">
+    <img id="np-cover" class="np-art" src="" alt=""
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="np-art-fallback">🎵</div>
+    <div class="np-info">
+      <div id="np-title" class="np-title">—</div>
+      <div id="np-artist" class="np-artist">Geen nummer</div>
+      <div id="np-album" class="np-album"></div>
+    </div>
+    <div class="np-progress">
+      <div class="np-track" id="np-track" onclick="seekTo(event)">
+        <div class="np-fill" id="np-fill" style="width:0%"></div>
+      </div>
+      <div class="np-times">
+        <span id="np-ct">0:00</span>
+        <span id="np-tt">0:00</span>
+      </div>
+    </div>
+    <div class="np-controls">
+      <button class="np-prev" onclick="prevSong()" aria-label="Vorige">
+        <svg viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z"/></svg>
+      </button>
+      <button class="np-play" id="np-playbtn" onclick="togglePlay()" aria-label="Afspelen">
+        <svg id="np-playico" viewBox="0 0 16 16">
+          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+        </svg>
+      </button>
+      <button class="np-next" onclick="nextSong()" aria-label="Volgende">
+        <svg viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5z"/></svg>
+      </button>
+    </div>
+    <div class="np-extras">
+      <button id="np-castbtn" onclick="doCast()" aria-label="Cast">
+        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      </button>
+      <button id="np-airplaybtn" onclick="doAirPlay()" aria-label="AirPlay" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M12 17l-5 5h10l-5-5zm0-15C6.477 2 2 6.477 2 12c0 2.5.926 4.776 2.444 6.515l1.446-1.446A7.956 7.956 0 0 1 4 12c0-4.418 3.582-8 8-8s8 3.582 8 8a7.956 7.956 0 0 1-1.89 5.069l1.446 1.446A9.955 9.955 0 0 0 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <audio id="aud" preload="none" x-webkit-airplay="allow"></audio>
 
 <script>
@@ -266,8 +434,6 @@ const SRV = {
   ext:   'http://satternas.synology.me:5000'
 };
 
-// Thuis (localhost) = lokaal via Python proxy
-// Online (music.satter.tv) = altijd extern via Cloudflare Worker
 const isHome = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 let mode = isHome ? 'local' : 'ext';
 let sid  = null;
@@ -282,7 +448,6 @@ function setSrv(m) {
   document.getElementById('btn-local').classList.toggle('on', m==='local');
   document.getElementById('btn-ext').classList.toggle('on', m==='ext');
 }
-// Automatisch juiste server kiezen
 setSrv(mode);
 
 async function doLogin() {
@@ -314,8 +479,6 @@ async function doLogin() {
 
 // ── API HELPER ──────────────────────────────────────────
 function apiBase() {
-  // Thuis (localhost): Python proxy, keuze per modus
-  // Online (music.satter.tv): altijd via Cloudflare Worker
   if (isHome) return mode === 'local' ? '/api-local' : '/api-ext';
   return 'https://syno-proxy.bertsatter.workers.dev';
 }
@@ -329,7 +492,6 @@ async function synoAPI(path, params={}) {
 }
 
 function streamURL(id) {
-  // Stream altijd via de juiste proxy (Worker of Python) – nooit direct naar Synology
   return `${apiBase()}/webapi/AudioStation/stream.cgi?api=SYNO.AudioStation.Stream&version=2&method=stream&id=${id}&_sid=${sid}`;
 }
 function coverURL(id) {
@@ -387,7 +549,7 @@ function loadSongs(q='') {
     if (!d.success) { c.querySelector('.loading').textContent=`Fout bij laden (code ${d.error?.code||'?'}). Probeer opnieuw in te loggen via ⏏`; return; }
     const songs = d.data.songs;
     queue = songs;
-    if (!q) allSongs = songs; // cache voor albums/artiesten
+    if (!q) allSongs = songs;
     const list = c.querySelector('.slist');
     const head = list.querySelector('.slist-head');
     list.innerHTML=''; list.appendChild(head);
@@ -413,10 +575,9 @@ function loadSongs(q='') {
   }).catch(e=>{ c.querySelector('.loading').textContent=`Verbindingsfout: ${e.message}. Controleer of de server bereikbaar is.`; });
 }
 
-// ── ALBUMS & ARTIESTEN (afgeleid uit songs-cache) ───────
+// ── ALBUMS & ARTIESTEN ──────────────────────────────────
 async function getSongs() {
   if (allSongs) return allSongs;
-  const c = document.getElementById('content');
   const d = await synoAPI('/webapi/AudioStation/song.cgi', {
     api:'SYNO.AudioStation.Song', version:3, method:'list',
     library:'all', limit:2000, offset:0,
@@ -557,28 +718,41 @@ function playSong(i, songs) {
   if (!s) return;
   const url=streamURL(s.id);
   aud.src=url; aud.play();
-  document.getElementById('ptitle').textContent=s.title;
-  document.getElementById('partist').textContent=s.additional?.song_tag?.artist||'';
-  document.getElementById('pcov').src=coverURL(s.id);
+  const title = s.title;
+  const artist = s.additional?.song_tag?.artist||'';
+  const album = s.additional?.song_tag?.album||'';
+  const art = coverURL(s.id);
+  document.getElementById('ptitle').textContent=title;
+  document.getElementById('partist').textContent=artist;
+  document.getElementById('pcov').src=art;
+  // Update Now Playing view
+  document.getElementById('np-title').textContent=title;
+  document.getElementById('np-artist').textContent=artist;
+  document.getElementById('np-album').textContent=album;
+  const npCov = document.getElementById('np-cover');
+  npCov.style.display='block';
+  npCov.nextElementSibling.style.display='none';
+  npCov.src=art;
   document.querySelectorAll('.si').forEach((el,j)=>el.classList.toggle('now',j===i));
   if (casting && castSession) castAudio(url,s);
-  // MediaSession: album art + info voor AirPlay en lock screen
   if ('mediaSession' in navigator) {
-    const artUrl = coverURL(s.id);
     navigator.mediaSession.metadata = new MediaMetadata({
-      title:  s.title,
-      artist: s.additional?.song_tag?.artist || '',
-      album:  s.additional?.song_tag?.album  || '',
-      artwork:[{src: artUrl, sizes:'512x512', type:'image/jpeg'}]
+      title:  title,
+      artist: artist,
+      album:  album,
+      artwork:[{src: art, sizes:'512x512', type:'image/jpeg'}]
     });
     navigator.mediaSession.setActionHandler('nexttrack', nextSong);
     navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+    navigator.mediaSession.setActionHandler('play', ()=>aud.play());
+    navigator.mediaSession.setActionHandler('pause', ()=>aud.pause());
   }
 }
 
 function doLogout() {
   sid = null; queue = []; qi = -1; allSongs = null;
   aud.pause(); aud.src = '';
+  closeNowPlaying();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login').style.display = 'flex';
   document.getElementById('upass').value = '';
@@ -592,23 +766,35 @@ function prevSong(){aud.currentTime>3?aud.currentTime=0:qi>0&&playSong(qi-1)}
 
 aud.addEventListener('timeupdate',()=>{
   if(!aud.duration)return;
-  document.getElementById('pfill').style.width=(aud.currentTime/aud.duration*100)+'%';
-  document.getElementById('ct').textContent=fmt(aud.currentTime);
+  const pct = (aud.currentTime/aud.duration*100)+'%';
+  document.getElementById('pfill').style.width = pct;
+  document.getElementById('np-fill').style.width = pct;
+  const t = fmt(aud.currentTime);
+  document.getElementById('ct').textContent = t;
+  document.getElementById('np-ct').textContent = t;
 });
-aud.addEventListener('loadedmetadata',()=>document.getElementById('tt').textContent=fmt(aud.duration));
+aud.addEventListener('loadedmetadata',()=>{
+  const t = fmt(aud.duration);
+  document.getElementById('tt').textContent = t;
+  document.getElementById('np-tt').textContent = t;
+});
 aud.addEventListener('ended',nextSong);
 aud.addEventListener('play',()=>setPauseIcon(true));
 aud.addEventListener('pause',()=>setPauseIcon(false));
 
 function setPauseIcon(playing){
-  document.getElementById('playico').innerHTML=playing
+  const path = playing
     ?'<path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>'
     :'<path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>';
+  document.getElementById('playico').innerHTML = path;
+  document.getElementById('np-playico').innerHTML = path;
 }
 
 function seekTo(e){
-  const b=document.getElementById('ptrack');
-  aud.currentTime=(e.offsetX/b.offsetWidth)*aud.duration;
+  const b = e.currentTarget;
+  const rect = b.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  if (aud.duration) aud.currentTime = (x / rect.width) * aud.duration;
 }
 
 let lastVol=0.8; aud.volume=0.8;
@@ -623,6 +809,37 @@ function toggleMute(){
   else{aud.volume=lastVol;document.getElementById('vfill').style.width=(lastVol*100)+'%';}
 }
 
+// ── NOW PLAYING OPEN / CLOSE ────────────────────────────
+function openNowPlaying(){
+  if (qi < 0) return; // niets te tonen
+  document.getElementById('nowplaying').classList.add('on');
+}
+function closeNowPlaying(){
+  document.getElementById('nowplaying').classList.remove('on');
+}
+
+// Swipe-down om te sluiten (mobiel)
+(function(){
+  const np = document.getElementById('nowplaying');
+  let startY = 0, currentY = 0, dragging = false;
+  np.addEventListener('touchstart', e=>{
+    if (e.target.closest('.np-track, .np-controls, .np-extras, .np-close')) return;
+    startY = e.touches[0].clientY; dragging = true;
+  }, {passive:true});
+  np.addEventListener('touchmove', e=>{
+    if (!dragging) return;
+    currentY = e.touches[0].clientY - startY;
+    if (currentY > 0) np.style.transform = `translateY(${currentY}px)`;
+  }, {passive:true});
+  np.addEventListener('touchend', ()=>{
+    if (!dragging) return;
+    dragging = false;
+    np.style.transform = '';
+    if (currentY > 100) closeNowPlaying();
+    currentY = 0;
+  });
+})();
+
 // ── GOOGLE CAST ──────────────────────────────────────────
 window['__onGCastApiAvailable']=function(ok){
   if(!ok)return;
@@ -636,10 +853,12 @@ window['__onGCastApiAvailable']=function(ok){
       if(s===cast.framework.SessionState.SESSION_STARTED){
         casting=true; castSession=cast.framework.CastContext.getInstance().getCurrentSession();
         document.getElementById('castbtn').classList.add('on');
+        document.getElementById('np-castbtn').classList.add('on');
         if(qi>=0)playSong(qi);
       } else if(s===cast.framework.SessionState.SESSION_ENDED){
         casting=false; castSession=null;
         document.getElementById('castbtn').classList.remove('on');
+        document.getElementById('np-castbtn').classList.remove('on');
       }
     }
   );
@@ -660,7 +879,6 @@ function castAudio(url,s){
   mi.metadata.title=s.title;
   mi.metadata.artist=s.additional?.song_tag?.artist||'';
   mi.metadata.albumName=s.additional?.song_tag?.album||'';
-  // Album art meesturen zodat het op het Google Home display verschijnt
   mi.metadata.images=[new chrome.cast.Image(coverURL(s.id))];
   castSession.loadMedia(new chrome.cast.media.LoadRequest(mi));
 }
@@ -681,6 +899,8 @@ function doAirPlay(){
   if(isSafari){
     document.getElementById('castbtn').style.display='none';
     document.getElementById('airplaybtn').style.display='flex';
+    document.getElementById('np-castbtn').style.display='none';
+    document.getElementById('np-airplaybtn').style.display='flex';
   }
 })();
 </script>
